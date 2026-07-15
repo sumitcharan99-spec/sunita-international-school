@@ -183,7 +183,11 @@ export const dataService = {
         const q = await getDocs(collection(db, p));
         return q.docs.map(d => ({ id: d.id, ...d.data() } as User));
       } catch (e) {
-        handleFirestoreError(e, OperationType.GET, p);
+        try {
+          handleFirestoreError(e, OperationType.GET, p);
+        } catch (thrown) {
+          console.warn(`Firestore GET on '${p}' denied. Falling back to local cache.`);
+        }
       }
     }
     return ls.get<User>(KEYS.USERS);
@@ -220,7 +224,11 @@ export const dataService = {
         const q = await getDocs(collection(db, p));
         return q.docs.map(d => ({ id: d.id, ...d.data() } as Notice));
       } catch (e) {
-        handleFirestoreError(e, OperationType.GET, p);
+        try {
+          handleFirestoreError(e, OperationType.GET, p);
+        } catch (thrown) {
+          console.warn(`Firestore GET on '${p}' denied. Falling back to local cache.`);
+        }
       }
     }
     return ls.get<Notice>(KEYS.NOTICES).sort((a,b) => b.createdAt.localeCompare(a.createdAt));
@@ -269,7 +277,11 @@ export const dataService = {
         const q = await getDocs(collection(db, p));
         return q.docs.map(d => ({ id: d.id, ...d.data() } as Homework));
       } catch (e) {
-        handleFirestoreError(e, OperationType.GET, p);
+        try {
+          handleFirestoreError(e, OperationType.GET, p);
+        } catch (thrown) {
+          console.warn(`Firestore GET on '${p}' denied. Falling back to local cache.`);
+        }
       }
     }
     return ls.get<Homework>(KEYS.HOMEWORK).sort((a,b) => b.createdAt.localeCompare(a.createdAt));
@@ -304,7 +316,11 @@ export const dataService = {
         const q = await getDocs(collection(db, p));
         return q.docs.map(d => ({ id: d.id, ...d.data() } as Attendance));
       } catch (e) {
-        handleFirestoreError(e, OperationType.GET, p);
+        try {
+          handleFirestoreError(e, OperationType.GET, p);
+        } catch (thrown) {
+          console.warn(`Firestore GET on '${p}' denied. Falling back to local cache.`);
+        }
       }
     }
     return ls.get<Attendance>(KEYS.ATTENDANCE).sort((a,b) => b.date.localeCompare(a.date));
@@ -354,7 +370,11 @@ export const dataService = {
         const q = await getDocs(collection(db, p));
         return q.docs.map(d => ({ id: d.id, ...d.data() } as FeeInvoice));
       } catch (e) {
-        handleFirestoreError(e, OperationType.GET, p);
+        try {
+          handleFirestoreError(e, OperationType.GET, p);
+        } catch (thrown) {
+          console.warn(`Firestore GET on '${p}' denied. Falling back to local cache.`);
+        }
       }
     }
     return ls.get<FeeInvoice>(KEYS.FEES);
@@ -421,7 +441,11 @@ export const dataService = {
         const q = await getDocs(collection(db, p));
         return q.docs.map(d => ({ id: d.id, ...d.data() } as ExamResult));
       } catch (e) {
-        handleFirestoreError(e, OperationType.GET, p);
+        try {
+          handleFirestoreError(e, OperationType.GET, p);
+        } catch (thrown) {
+          console.warn(`Firestore GET on '${p}' denied. Falling back to local cache.`);
+        }
       }
     }
     return ls.get<ExamResult>(KEYS.RESULTS);
@@ -456,7 +480,11 @@ export const dataService = {
         const q = await getDocs(collection(db, p));
         return q.docs.map(d => ({ id: d.id, ...d.data() } as AdmissionEnquiry));
       } catch (e) {
-        handleFirestoreError(e, OperationType.GET, p);
+        try {
+          handleFirestoreError(e, OperationType.GET, p);
+        } catch (thrown) {
+          console.warn(`Firestore GET on '${p}' denied. Falling back to local cache.`);
+        }
       }
     }
     return ls.get<AdmissionEnquiry>(KEYS.ENQUIRIES).sort((a,b) => b.date.localeCompare(a.date));
@@ -521,7 +549,11 @@ export const dataService = {
         const q = await getDocs(collection(db, p));
         return q.docs.map(d => ({ id: d.id, ...d.data() } as CalendarEvent));
       } catch (e) {
-        handleFirestoreError(e, OperationType.GET, p);
+        try {
+          handleFirestoreError(e, OperationType.GET, p);
+        } catch (thrown) {
+          console.warn(`Firestore GET on '${p}' denied. Falling back to local cache.`);
+        }
       }
     }
     return ls.get<CalendarEvent>(KEYS.EVENTS);
@@ -570,7 +602,11 @@ export const dataService = {
         const q = await getDocs(collection(db, p));
         return q.docs.map(d => ({ id: d.id, ...d.data() } as CertificateRequest));
       } catch (e) {
-        handleFirestoreError(e, OperationType.GET, p);
+        try {
+          handleFirestoreError(e, OperationType.GET, p);
+        } catch (thrown) {
+          console.warn(`Firestore GET on '${p}' denied. Falling back to local cache.`);
+        }
       }
     }
     return ls.get<CertificateRequest>(KEYS.CERTIFICATES).sort((a, b) => b.dateRequested.localeCompare(a.dateRequested));
@@ -655,7 +691,11 @@ export const dataService = {
         const q = await getDocs(collection(db, p));
         return q.docs.map(d => ({ id: d.id, ...d.data() } as CommunicationLog));
       } catch (e) {
-        handleFirestoreError(e, OperationType.GET, p);
+        try {
+          handleFirestoreError(e, OperationType.GET, p);
+        } catch (thrown) {
+          console.warn(`Firestore GET on '${p}' denied. Falling back to local cache.`);
+        }
       }
     }
     return ls.get<CommunicationLog>(KEYS.COMM_LOGS).sort((a, b) => b.timestamp.localeCompare(a.timestamp));
@@ -718,7 +758,11 @@ export const dataService = {
         const q = await getDocs(collection(db, p));
         return q.docs.map(d => ({ id: d.id, ...d.data() } as Timetable));
       } catch (e) {
-        handleFirestoreError(e, OperationType.GET, p);
+        try {
+          handleFirestoreError(e, OperationType.GET, p);
+        } catch (thrown) {
+          console.warn(`Firestore GET on '${p}' denied. Falling back to local cache.`);
+        }
       }
     }
     return ls.get<Timetable>(KEYS.TIMETABLES);

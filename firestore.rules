@@ -16,88 +16,119 @@ service cloud.firestore {
       return isSignedIn() && (request.auth.token.email_verified == true || request.auth.token.email == "sumitcharan99@gmail.com");
     }
 
-    function isUserEmail(email) {
-      return request.auth.token.email == email;
+    // Safely retrieve user data document
+    function getUserData() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
     }
 
-    // Role primitive queries. Auth tokens are trusted. 
-    // If the email is the bootstrapped admin, grant instant admin status.
+    // Role primitive queries. Auth tokens are trusted.
     function isAdmin() {
       return isSignedIn() && (
         request.auth.token.email == "sumitcharan99@gmail.com" ||
-        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == "admin"
+        getUserData().role == "admin"
       );
     }
 
     function isTeacher() {
-      return isSignedIn() && (
-        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == "teacher"
-      );
+      return isSignedIn() && getUserData().role == "teacher";
     }
 
     function isStudent() {
-      return isSignedIn() && (
-        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == "student"
-      );
+      return isSignedIn() && getUserData().role == "student";
     }
 
     function isParent() {
-      return isSignedIn() && (
-        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == "parent"
-      );
+      return isSignedIn() && getUserData().role == "parent";
     }
 
     function isValidId(id) {
       return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
     }
 
-    // 2. Users collection rules
+    // 2. Users collection rules (PII Isolation & Role Promotion Prevention)
     match /users/{userId} {
-      allow read: if isSignedIn();
-      allow create, update: if isAdmin() || (isSignedIn() && request.auth.uid == userId);
+      allow read: if isSignedIn() && (isAdmin() || isTeacher() || request.auth.uid == userId);
+      allow create: if isSignedIn() && (
+        isAdmin() || (
+          request.auth.uid == userId && 
+          (request.resource.data.role == "student" || request.resource.data.role == "parent")
+        )
+      );
+      allow update: if isSignedIn() && (
+        isAdmin() || (
+          request.auth.uid == userId && 
+          request.resource.data.role == resource.data.role &&
+          request.resource.data.email == resource.data.email
+        )
+      );
       allow delete: if isAdmin();
     }
 
-    // 3. Notices rules
+    // 3. Notices rules (Bulletin public read for members, write restricted)
     match /notices/{noticeId} {
       allow read: if isSignedIn();
       allow create, update, delete: if isAdmin() || isTeacher();
     }
 
-    // 4. Homework rules
+    // 4. Homework rules (Class assignment read, write restricted)
     match /homework/{homeworkId} {
       allow read: if isSignedIn();
       allow create, update, delete: if isAdmin() || isTeacher();
     }
 
-    // 5. Attendance rules
+    // 5. Attendance rules (Durable access control per student)
     match /attendance/{attendanceId} {
-      allow read: if isSignedIn() && (isAdmin() || isTeacher() || isParent() || isStudent());
+      allow read: if isSignedIn() && (
+        isAdmin() || 
+        isTeacher() || 
+        resource.data.studentId == getUserData().studentId || 
+        resource.data.studentId == request.auth.uid
+      );
       allow create, update, delete: if isAdmin() || isTeacher();
     }
 
-    // 6. Fees invoices rules
+    // 6. Fees invoices rules (Financial data strictly isolated to relevant owners)
     match /fees/{feeId} {
-      allow read: if isSignedIn();
+      allow read: if isSignedIn() && (
+        isAdmin() || 
+        isTeacher() ||
+        resource.data.studentId == getUserData().studentId || 
+        resource.data.studentId == request.auth.uid
+      );
       allow create, update, delete: if isAdmin();
     }
 
-    // 7. Results rules
+    // 7. Exam Results rules (Report cards restricted to students/parents and staff)
     match /results/{resultId} {
-      allow read: if isSignedIn();
+      allow read: if isSignedIn() && (
+        isAdmin() || 
+        isTeacher() || 
+        resource.data.studentId == getUserData().studentId || 
+        resource.data.studentId == request.auth.uid
+      );
       allow create, update, delete: if isAdmin() || isTeacher();
     }
 
-    // 8. Admission Enquiries rules (Public Create, Admin/Staff Read/Write)
+    // 8. Admission Enquiries rules (Public Create, Staff Read/Write)
     match /enquiries/{enquiryId} {
       allow create: if true; // Public submission is allowed
       allow read, update, delete: if isSignedIn() && (isAdmin() || isTeacher());
     }
 
-    // 9. Certificates rules (Signed-in users can read/create; Admin updates/approves)
+    // 9. Certificates rules (Request isolation per student)
     match /certificates/{certificateId} {
-      allow read: if isSignedIn();
-      allow create: if isSignedIn();
+      allow read: if isSignedIn() && (
+        isAdmin() || 
+        isTeacher() || 
+        resource.data.studentId == getUserData().studentId || 
+        resource.data.studentId == request.auth.uid ||
+        resource.data.studentId == "student_demo"
+      );
+      allow create: if isSignedIn() && (
+        isAdmin() || 
+        request.resource.data.studentId == getUserData().studentId || 
+        request.resource.data.studentId == request.auth.uid
+      );
       allow update, delete: if isAdmin();
     }
 
@@ -107,13 +138,13 @@ service cloud.firestore {
       allow create, update, delete: if isAdmin() || isTeacher();
     }
 
-    // 11. Communication Logs rules
+    // 11. Communication Logs rules (Logs are staff-only to prevent contact list snooping)
     match /comm_logs/{logId} {
-      allow read, create, update: if isSignedIn();
+      allow read, create, update: if isSignedIn() && (isAdmin() || isTeacher());
       allow delete: if isAdmin();
     }
 
-    // 12. Timetable rules
+    // 12. Timetables rules
     match /timetables/{timetableId} {
       allow read: if isSignedIn();
       allow create, update, delete: if isAdmin();
