@@ -1,0 +1,237 @@
+{
+  "entities": {
+    "User": {
+      "title": "User",
+      "description": "Represents a student, parent, teacher, or admin account.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "email": { "type": "string" },
+        "role": { "type": "string", "enum": ["admin", "teacher", "parent", "student"] },
+        "classId": { "type": "string" },
+        "studentId": { "type": "string" },
+        "phone": { "type": "string" },
+        "admissionNo": { "type": "string" },
+        "rollNo": { "type": "string" }
+      },
+      "required": ["id", "name", "email", "role"]
+    },
+    "Notice": {
+      "title": "Notice",
+      "description": "Notice posted on the school-wide bulletin board.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "title": { "type": "string" },
+        "content": { "type": "string" },
+        "date": { "type": "string", "format": "date" },
+        "targetGroup": { "type": "string", "enum": ["all", "teachers", "students", "parents"] },
+        "authorName": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "isUrgent": { "type": "boolean" }
+      },
+      "required": ["id", "title", "content", "date", "targetGroup", "authorName"]
+    },
+    "Homework": {
+      "title": "Homework",
+      "description": "Class homework assigned by teachers.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "title": { "type": "string" },
+        "description": { "type": "string" },
+        "subject": { "type": "string" },
+        "classId": { "type": "string" },
+        "dueDate": { "type": "string", "format": "date" },
+        "submissionsCount": { "type": "number" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "title", "description", "subject", "classId", "dueDate", "submissionsCount"]
+    },
+    "Attendance": {
+      "title": "Attendance",
+      "description": "Attendance log for a particular student on a given date.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "studentId": { "type": "string" },
+        "studentName": { "type": "string" },
+        "date": { "type": "string", "format": "date" },
+        "status": { "type": "string", "enum": ["present", "absent", "late"] },
+        "markedByTeacherId": { "type": "string" },
+        "remarks": { "type": "string" }
+      },
+      "required": ["id", "studentId", "studentName", "date", "status", "markedByTeacherId"]
+    },
+    "FeeInvoice": {
+      "title": "FeeInvoice",
+      "description": "Fees invoice for tracking payment of school fees.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "studentId": { "type": "string" },
+        "studentName": { "type": "string" },
+        "amount": { "type": "number" },
+        "dueDate": { "type": "string", "format": "date" },
+        "status": { "type": "string", "enum": ["paid", "unpaid", "partial"] },
+        "payDate": { "type": "string", "format": "date" },
+        "transactionId": { "type": "string" },
+        "termName": { "type": "string" }
+      },
+      "required": ["id", "studentId", "studentName", "amount", "dueDate", "status", "termName"]
+    },
+    "ExamResult": {
+      "title": "ExamResult",
+      "description": "Academic exam result card.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "studentId": { "type": "string" },
+        "studentName": { "type": "string" },
+        "term": { "type": "string" },
+        "subject": { "type": "string" },
+        "marksObtained": { "type": "number" },
+        "maxMarks": { "type": "number" },
+        "grade": { "type": "string" },
+        "remarks": { "type": "string" },
+        "date": { "type": "string", "format": "date" }
+      },
+      "required": ["id", "studentId", "studentName", "term", "subject", "marksObtained", "maxMarks", "grade"]
+    },
+    "AdmissionEnquiry": {
+      "title": "AdmissionEnquiry",
+      "description": "Inbound admission interest queries from public applicants.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "studentName": { "type": "string" },
+        "parentName": { "type": "string" },
+        "email": { "type": "string", "format": "email" },
+        "phone": { "type": "string" },
+        "gradeSeeking": { "type": "string" },
+        "message": { "type": "string" },
+        "status": { "type": "string", "enum": ["submitted", "contacted", "approved", "rejected"] },
+        "date": { "type": "string", "format": "date" }
+      },
+      "required": ["id", "studentName", "parentName", "email", "phone", "gradeSeeking", "status"]
+    },
+    "CalendarEvent": {
+      "title": "CalendarEvent",
+      "description": "Academic school calendar events.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "title": { "type": "string" },
+        "description": { "type": "string" },
+        "date": { "type": "string" },
+        "endDate": { "type": "string" },
+        "type": { "type": "string", "enum": ["exam", "holiday", "event", "other"] },
+        "createdBy": { "type": "string" },
+        "classId": { "type": "string" }
+      },
+      "required": ["id", "title", "description", "date", "type", "createdBy"]
+    },
+    "CertificateRequest": {
+      "title": "CertificateRequest",
+      "description": "Certificate requests submitted by students/parents.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "studentId": { "type": "string" },
+        "studentName": { "type": "string" },
+        "classId": { "type": "string" },
+        "rollNo": { "type": "string" },
+        "parentName": { "type": "string" },
+        "dob": { "type": "string" },
+        "reason": { "type": "string" },
+        "certificateType": { "type": "string", "enum": ["transfer", "character"] },
+        "status": { "type": "string", "enum": ["pending", "approved", "rejected"] },
+        "dateRequested": { "type": "string" },
+        "dateApproved": { "type": "string" },
+        "approvedBy": { "type": "string" },
+        "serialNo": { "type": "string" }
+      },
+      "required": ["id", "studentId", "studentName", "classId", "certificateType", "status", "dateRequested"]
+    },
+    "CommunicationLog": {
+      "title": "CommunicationLog",
+      "description": "Communication dispatch logs.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "recipientName": { "type": "string" },
+        "recipientPhone": { "type": "string" },
+        "recipientRole": { "type": "string" },
+        "messageType": { "type": "string", "enum": ["sms", "whatsapp", "both", "email", "all"] },
+        "messageContent": { "type": "string" },
+        "status": { "type": "string", "enum": ["sent", "delivered", "failed"] },
+        "timestamp": { "type": "string" },
+        "noticeTitle": { "type": "string" },
+        "isManual": { "type": "boolean" }
+      },
+      "required": ["id", "recipientName", "recipientPhone", "recipientRole", "messageType", "messageContent", "status", "timestamp"]
+    },
+    "Timetable": {
+      "title": "Timetable",
+      "description": "Weekly class schedules for different school grades and sections.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "classId": { "type": "string" },
+        "day": { "type": "string", "enum": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"] },
+        "subject": { "type": "string" },
+        "teacher": { "type": "string" },
+        "startTime": { "type": "string" },
+        "endTime": { "type": "string" }
+      },
+      "required": ["id", "classId", "day", "subject", "teacher", "startTime", "endTime"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "User",
+      "description": "User login roles and profiles."
+    },
+    "/notices/{noticeId}": {
+      "schema": "Notice",
+      "description": "Bulletin notices."
+    },
+    "/homework/{homeworkId}": {
+      "schema": "Homework",
+      "description": "Assign homework tasks."
+    },
+    "/attendance/{attendanceId}": {
+      "schema": "Attendance",
+      "description": "Student daily attendance entries."
+    },
+    "/fees/{feeId}": {
+      "schema": "FeeInvoice",
+      "description": "Tuition fees details."
+    },
+    "/results/{resultId}": {
+      "schema": "ExamResult",
+      "description": "Report cards of examinations."
+    },
+    "/enquiries/{enquiryId}": {
+      "schema": "AdmissionEnquiry",
+      "description": "Public enquiries for new admissions."
+    },
+    "/events/{eventId}": {
+      "schema": "CalendarEvent",
+      "description": "Academic school calendar events."
+    },
+    "/certificates/{certificateId}": {
+      "schema": "CertificateRequest",
+      "description": "Certificate issuing requests."
+    },
+    "/comm_logs/{logId}": {
+      "schema": "CommunicationLog",
+      "description": "History of communication dispatches."
+    },
+    "/timetables/{timetableId}": {
+      "schema": "Timetable",
+      "description": "Weekly class schedules and periods."
+    }
+  }
+}

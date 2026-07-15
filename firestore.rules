@@ -1,0 +1,122 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // 1. Global safety net (Default Deny)
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Global helper primitives
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isEmailVerified() {
+      return isSignedIn() && (request.auth.token.email_verified == true || request.auth.token.email == "sumitcharan99@gmail.com");
+    }
+
+    function isUserEmail(email) {
+      return request.auth.token.email == email;
+    }
+
+    // Role primitive queries. Auth tokens are trusted. 
+    // If the email is the bootstrapped admin, grant instant admin status.
+    function isAdmin() {
+      return isSignedIn() && (
+        request.auth.token.email == "sumitcharan99@gmail.com" ||
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == "admin"
+      );
+    }
+
+    function isTeacher() {
+      return isSignedIn() && (
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == "teacher"
+      );
+    }
+
+    function isStudent() {
+      return isSignedIn() && (
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == "student"
+      );
+    }
+
+    function isParent() {
+      return isSignedIn() && (
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == "parent"
+      );
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    // 2. Users collection rules
+    match /users/{userId} {
+      allow read: if isSignedIn();
+      allow create, update: if isAdmin() || (isSignedIn() && request.auth.uid == userId);
+      allow delete: if isAdmin();
+    }
+
+    // 3. Notices rules
+    match /notices/{noticeId} {
+      allow read: if isSignedIn();
+      allow create, update, delete: if isAdmin() || isTeacher();
+    }
+
+    // 4. Homework rules
+    match /homework/{homeworkId} {
+      allow read: if isSignedIn();
+      allow create, update, delete: if isAdmin() || isTeacher();
+    }
+
+    // 5. Attendance rules
+    match /attendance/{attendanceId} {
+      allow read: if isSignedIn() && (isAdmin() || isTeacher() || isParent() || isStudent());
+      allow create, update, delete: if isAdmin() || isTeacher();
+    }
+
+    // 6. Fees invoices rules
+    match /fees/{feeId} {
+      allow read: if isSignedIn();
+      allow create, update, delete: if isAdmin();
+    }
+
+    // 7. Results rules
+    match /results/{resultId} {
+      allow read: if isSignedIn();
+      allow create, update, delete: if isAdmin() || isTeacher();
+    }
+
+    // 8. Admission Enquiries rules (Public Create, Admin/Staff Read/Write)
+    match /enquiries/{enquiryId} {
+      allow create: if true; // Public submission is allowed
+      allow read, update, delete: if isSignedIn() && (isAdmin() || isTeacher());
+    }
+
+    // 9. Certificates rules (Signed-in users can read/create; Admin updates/approves)
+    match /certificates/{certificateId} {
+      allow read: if isSignedIn();
+      allow create: if isSignedIn();
+      allow update, delete: if isAdmin();
+    }
+
+    // 10. Calendar Events rules
+    match /events/{eventId} {
+      allow read: if isSignedIn();
+      allow create, update, delete: if isAdmin() || isTeacher();
+    }
+
+    // 11. Communication Logs rules
+    match /comm_logs/{logId} {
+      allow read, create, update: if isSignedIn();
+      allow delete: if isAdmin();
+    }
+
+    // 12. Timetable rules
+    match /timetables/{timetableId} {
+      allow read: if isSignedIn();
+      allow create, update, delete: if isAdmin();
+    }
+  }
+}

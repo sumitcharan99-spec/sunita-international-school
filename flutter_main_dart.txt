@@ -1,0 +1,1091 @@
+import 'package:flutter/material.dart';
+
+void main() {
+  runApp(const SunitaSchoolPortalApp());
+}
+
+class SunitaSchoolPortalApp extends StatelessWidget {
+  const SunitaSchoolPortalApp({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      title: 'Sunita Academic Portal',
+      debugShowCheckedModeBanner: false,
+      theme: ThemeData(
+        useMaterial3: true,
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: const Color(0xFF0B2545),
+          primary: const Color(0xFF0B2545),
+          secondary: const Color(0xFFEEB902),
+        ),
+        fontFamily: 'Inter',
+        appBarTheme: const AppBarTheme(
+          backgroundColor: Color(0xFF0B2545),
+          foregroundColor: Colors.white,
+          elevation: 2,
+        ),
+      ),
+      home: const MainPortalScreen(),
+    );
+  }
+}
+
+// Global Mock Database
+class Student {
+  final String id;
+  final String name;
+  final String rollNo;
+  final String classId;
+
+  Student({required this.id, required this.name, required this.rollNo, required this.classId});
+}
+
+class Notice {
+  final String id;
+  final String title;
+  final String content;
+  final String date;
+  final String targetGroup;
+  final String authorName;
+
+  Notice({
+    required this.id,
+    required this.title,
+    required this.content,
+    required this.date,
+    required this.targetGroup,
+    required this.authorName,
+  });
+}
+
+class FeeInvoice {
+  final String id;
+  final String studentId;
+  final String studentName;
+  final String termName;
+  final double amount;
+  final String dueDate;
+  String status;
+
+  FeeInvoice({
+    required this.id,
+    required this.studentId,
+    required this.studentName,
+    required this.termName,
+    required this.amount,
+    required this.dueDate,
+    this.status = 'unpaid',
+  });
+}
+
+class CalendarEvent {
+  final String id;
+  final String title;
+  final String description;
+  final String date;
+  final String type; // 'exam' | 'holiday' | 'event'
+
+  CalendarEvent({
+    required this.id,
+    required this.title,
+    required this.description,
+    required this.date,
+    required this.type,
+  });
+}
+
+class MainPortalScreen extends StatefulWidget {
+  const MainPortalScreen({super.key});
+
+  @override
+  State<MainPortalScreen> createState() => _MainPortalScreenState();
+}
+
+class _MainPortalScreenState extends State<MainPortalScreen> {
+  // Current Role Session
+  String currentRole = 'admin'; // 'admin', 'teacher', 'parent', 'student'
+  int _selectedBottomNavIndex = 0;
+
+  // Databases
+  final List<Student> students = [
+    Student(id: 'std_1', name: 'Rahul Sharma', rollNo: '24', classId: 'Class 10A'),
+    Student(id: 'std_2', name: 'Aarav Patel', rollNo: '01', classId: 'Class 10A'),
+    Student(id: 'std_3', name: 'Ananya Iyer', rollNo: '05', classId: 'Class 10C'),
+    Student(id: 'std_4', name: 'Aditya Rao', rollNo: '02', classId: 'Class 10A'),
+    Student(id: 'std_5', name: 'Diya Sen', rollNo: '11', classId: 'Class 10B'),
+  ];
+
+  final List<Notice> notices = [
+    Notice(
+      id: 'not_1',
+      title: 'Monsoon Swimming & Summer Camp Open',
+      content: 'Registration for the Sunita International Swimming and Summer Talent Camp has officially commenced! Register by June 20th.',
+      date: '2026-06-10',
+      targetGroup: 'All',
+      authorName: 'Mrs. Sunita Sharma (Principal)',
+    ),
+    Notice(
+      id: 'not_2',
+      title: 'Parent-Teacher Meeting (PTM)',
+      content: 'Appraisal meeting scheduled for Saturday (9:00 AM - 1:30 PM) to discuss evaluation grades & reports.',
+      date: '2026-06-08',
+      targetGroup: 'Parents',
+      authorName: 'Mr. Arvind Verma',
+    ),
+  ];
+
+  final List<FeeInvoice> fees = [
+    FeeInvoice(
+      id: 'inv_101',
+      studentId: 'std_1',
+      studentName: 'Rahul Sharma',
+      termName: 'Quarter 2 Tuition Fee',
+      amount: 14500.0,
+      dueDate: '2026-06-30',
+      status: 'unpaid',
+    ),
+    FeeInvoice(
+      id: 'inv_102',
+      studentId: 'std_2',
+      studentName: 'Aarav Patel',
+      termName: 'Quarter 2 Tuition Fee',
+      amount: 14500.0,
+      dueDate: '2026-06-30',
+      status: 'paid',
+    ),
+    FeeInvoice(
+      id: 'inv_103',
+      studentId: 'std_3',
+      studentName: 'Ananya Iyer',
+      termName: 'Laboratory & Computer Levy',
+      amount: 4200.0,
+      dueDate: '2026-06-15',
+      status: 'unpaid',
+    ),
+  ];
+
+  final List<CalendarEvent> events = [
+    CalendarEvent(id: 'e1', title: 'Summer Vacations Start', description: 'School closed for summer holidays', date: '21st June', type: 'holiday'),
+    CalendarEvent(id: 'e2', title: 'Term-1 Unit Examinations', description: 'Mandatory semester tests commence details', date: '1st July', type: 'exam'),
+    CalendarEvent(id: 'e3', title: 'Inter-House Sports Meet', description: 'Annual football and swimming trials', date: '15th July', type: 'event'),
+  ];
+
+  // Notice Creator Fields
+  final _noticeTitleCtrl = TextEditingController();
+  final _noticeContentCtrl = TextEditingController();
+  String _noticeTarget = 'All';
+
+  // Fee Invoice Creator Fields
+  String _selectedFeeStudent = 'std_1';
+  String _selectedFeeTerm = 'Quarter 2 Tuition Fee';
+  final _feeAmountCtrl = TextEditingController(text: '12000');
+  final _feeDueDateCtrl = TextEditingController(text: '2026-07-15');
+
+  @override
+  void dispose() {
+    _noticeTitleCtrl.dispose();
+    _noticeContentCtrl.dispose();
+    _feeAmountCtrl.dispose();
+    _feeDueDateCtrl.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: const Color(0xFFF4F6F9),
+      appBar: AppBar(
+        title: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(5),
+              decoration: BoxDecoration(
+                color: const Color(0xFFEEB902),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: const Icon(Icons.school, color: Color(0xFF0B2545), size: 24),
+            ),
+            const SizedBox(width: 10),
+            const Text(
+              'Sunita Academic',
+              style: TextStyle(fontWeight: FontWeight.w900, letterSpacing: -0.5),
+            ),
+          ],
+        ),
+        actions: [
+          // Role selector dropdown to simulate portal swaps
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 2),
+            margin: const EdgeInsets.symmetric(horizontal: 12),
+            decoration: BoxDecoration(
+              color: Colors.white.withOpacity(0.15),
+              borderRadius: BorderRadius.circular(20),
+            ),
+            child: DropdownButtonHideUnderline(
+              child: DropdownButton<String>(
+                value: currentRole,
+                dropdownColor: const Color(0xFF0B2545),
+                style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                icon: const Icon(Icons.arrow_drop_down, color: Color(0xFFEEB902)),
+                items: const [
+                  DropdownMenuItem(value: 'admin', child: Text('Admin Portal')),
+                  DropdownMenuItem(value: 'teacher', child: Text('Teacher Portal')),
+                  DropdownMenuItem(value: 'student', child: Text('Student / Parent')),
+                ],
+                onChanged: (String? val) {
+                  if (val != null) {
+                    setState(() {
+                      currentRole = val;
+                      _selectedBottomNavIndex = 0; // reset tab index on swap
+                    });
+                  }
+                },
+              ),
+            ),
+          ),
+        ],
+      ),
+      body: _buildCurrentBody(),
+      bottomNavigationBar: BottomNavigationBar(
+        currentIndex: _selectedBottomNavIndex,
+        selectedItemColor: const Color(0xFF0B2545),
+        unselectedItemColor: Colors.slate.shade400,
+        backgroundColor: Colors.white,
+        showUnselectedLabels: true,
+        onTap: (index) {
+          setState(() {
+            _selectedBottomNavIndex = index;
+          });
+        },
+        items: _buildNavItems(),
+      ),
+    );
+  }
+
+  // Generate navbar tabs based on current simulated portal state
+  List<BottomNavigationBarItem> _buildNavItems() {
+    if (currentRole == 'admin') {
+      return const [
+        BottomNavigationBarItem(icon: Icon(Icons.dashboard_rounded), label: 'Dashboard'),
+        BottomNavigationBarItem(icon: Icon(Icons.credit_card), label: 'Billing / Fees'),
+        BottomNavigationBarItem(icon: Icon(Icons.campaign), label: 'Broadcasts'),
+      ];
+    } else if (currentRole == 'teacher') {
+      return const [
+        BottomNavigationBarItem(icon: Icon(Icons.done_all), label: 'Attendance'),
+        BottomNavigationBarItem(icon: Icon(Icons.assignment), label: 'Homework'),
+        BottomNavigationBarItem(icon: Icon(Icons.campaign), label: 'Bulletins'),
+      ];
+    } else {
+      return const [
+        BottomNavigationBarItem(icon: Icon(Icons.grid_view_rounded), label: 'Overview'),
+        BottomNavigationBarItem(icon: Icon(Icons.account_balance_wallet_rounded), label: 'My Ledger'),
+        BottomNavigationBarItem(icon: Icon(Icons.event_note), label: 'Calendar'),
+      ];
+    }
+  }
+
+  Widget _buildCurrentBody() {
+    if (currentRole == 'admin') {
+      switch (_selectedBottomNavIndex) {
+        case 0:
+          return _buildAdminDashboard();
+        case 1:
+          return _buildAdminBilling();
+        case 2:
+          return _buildAdminNotices();
+        default:
+          return _buildAdminDashboard();
+      }
+    } else if (currentRole == 'teacher') {
+      switch (_selectedBottomNavIndex) {
+        case 0:
+          return _buildTeacherAttendance();
+        case 1:
+          return _buildTeacherHomework();
+        case 2:
+          return _buildGenericNoticesView();
+        default:
+          return _buildTeacherAttendance();
+      }
+    } else {
+      switch (_selectedBottomNavIndex) {
+        case 0:
+          return _buildStudentOverview();
+        case 1:
+          return _buildStudentLedger();
+        case 2:
+          return _buildAcademicCalendar();
+        default:
+          return _buildStudentOverview();
+      }
+    }
+  }
+
+  // ================= ADMIN VIEW MODULES =================
+
+  Widget _buildAdminDashboard() {
+    double totalOutstanding = fees.where((f) => f.status == 'unpaid').fold(0, (sum, item) => sum + item.amount);
+    int unpaidCount = fees.where((f) => f.status == 'unpaid').length;
+
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const CircleAvatar(
+                backgroundColor: Color(0xFF0B2545),
+                radius: 20,
+                child: Icon(Icons.person, color: Color(0xFFEEB902)),
+              ),
+              const SizedBox(width: 12),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Welcome back, Principal',
+                    style: TextStyle(fontSize: 13, color: Colors.slate.shade600, fontWeight: FontWeight.w600),
+                  ),
+                  const Text(
+                    'Mrs. Sunita Sharma',
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF0B2545)),
+                  ),
+                ],
+              ),
+            ],
+          ),
+          const SizedBox(height: 20),
+
+          // Overview Stats Grid
+          GridView.count(
+            crossAxisCount: 2,
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            crossAxisSpacing: 12,
+            mainAxisSpacing: 12,
+            childAspectRatio: 1.5,
+            children: [
+              _buildStatsCard(
+                'Total Students',
+                '${students.length} Enrolled',
+                Icons.people,
+                const Color(0xFF0B2545),
+              ),
+              _buildStatsCard(
+                'Fee Outstanding',
+                '₹${totalOutstanding.toStringAsFixed(0)}',
+                Icons.payment,
+                Colors.rose.shade800,
+              ),
+              _buildStatsCard(
+                'Active Announcements',
+                '${notices.length} Dispatched',
+                Icons.campaign,
+                const Color(0xFFEEB902),
+              ),
+              _buildStatsCard(
+                'Unpaid Ledger Dues',
+                '$unpaidCount Invoices',
+                Icons.receipt_long,
+                Colors.orange.shade800,
+              ),
+            ],
+          ),
+          const SizedBox(height: 24),
+
+          // Enquiries Panel
+          const Text(
+            'Enrollment & Admissions Portal',
+            style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: Color(0xFF0B2545)),
+          ),
+          const SizedBox(height: 10),
+          Card(
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            color: Colors.white,
+            elevation: 1,
+            child: ListView.separated(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              itemCount: 2,
+              separatorBuilder: (_, __) => const Divider(height: 1),
+              itemBuilder: (context, index) {
+                final names = ['Rohan Malhotra', 'Ishita Dubey'];
+                final grades = ['Grade Seeking: Class 9A', 'Grade Seeking: Class 10A'];
+                return ListTile(
+                  leading: const CircleAvatar(backgroundColor: Color(0xFF0B2545), child: Icon(Icons.school, color: Colors.white, size: 16)),
+                  title: Text(names[index], style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+                  subtitle: Text(grades[index], style: TextStyle(fontSize: 11, color: Colors.grey.shade600)),
+                  trailing: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    decoration: BoxDecoration(color: Colors.blue.shade50, borderRadius: BorderRadius.circular(12)),
+                    child: const Text('Pending Review', style: TextStyle(fontSize: 10, color: Colors.blue, fontWeight: FontWeight.bold)),
+                  ),
+                );
+              },
+            ),
+          )
+        ],
+      ),
+    );
+  }
+
+  Widget _buildStatsCard(String title, String val, IconData icon, Color mainColor) {
+    return Card(
+      color: Colors.white,
+      elevation: 1,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      child: Padding(
+        padding: const EdgeInsets.all(12),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Expanded(
+                  child: Text(
+                    title,
+                    style: TextStyle(fontSize: 10, color: Colors.grey.shade500, fontWeight: FontWeight.bold, overflow: TextOverflow.ellipsis),
+                  ),
+                ),
+                Icon(icon, color: mainColor, size: 18),
+              ],
+            ),
+            const SizedBox(height: 8),
+            Text(
+              val,
+              style: TextStyle(fontSize: 15, fontWeight: FontWeight.w900, color: mainColor),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildAdminBilling() {
+    double totalOutstanding = fees.where((f) => f.status == 'unpaid').fold(0, (sum, item) => sum + item.amount);
+
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'Academic Fee Dispatch Ledger',
+            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Color(0xFF0B2545)),
+          ),
+          const SizedBox(height: 12),
+
+          // Billing Creator Widget
+          Card(
+            color: Colors.white,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text('Create Fee Dues Invoice', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Color(0xFF0B2545))),
+                  const SizedBox(height: 12),
+                  DropdownButtonFormField<String>(
+                    value: _selectedFeeStudent,
+                    decoration: const InputDecoration(labelText: 'Target Student', border: OutlineInputBorder()),
+                    items: students.map((s) => DropdownMenuItem(value: s.id, child: Text('${s.name} (${s.classId})'))).toList(),
+                    onChanged: (val) {
+                      if (val != null) setState(() => _selectedFeeStudent = val);
+                    },
+                  ),
+                  const SizedBox(height: 10),
+                  DropdownButtonFormField<String>(
+                    value: _selectedFeeTerm,
+                    decoration: const InputDecoration(labelText: 'Description / Term', border: OutlineInputBorder()),
+                    items: const [
+                      DropdownMenuItem(value: 'Quarter 2 Tuition Fee', child: Text('Quarter 2 Tuition Fee')),
+                      DropdownMenuItem(value: 'Science Lab & Tech Levy', child: Text('Science Lab & Tech Levy')),
+                      DropdownMenuItem(value: 'Terminal Assessment Fee', child: Text('Terminal Assessment Fee')),
+                    ],
+                    onChanged: (val) {
+                      if (val != null) setState(() => _selectedFeeTerm = val);
+                    },
+                  ),
+                  const SizedBox(height: 10),
+                  TextField(
+                    controller: _feeAmountCtrl,
+                    decoration: const InputDecoration(labelText: 'Amount (₹ INR)', border: OutlineInputBorder()),
+                    keyboardType: TextInputType.number,
+                  ),
+                  const SizedBox(height: 12),
+                  ElevatedButton.icon(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF0B2545),
+                      foregroundColor: const Color(0xFFEEB902),
+                      minimumSize: const Size.fromHeight(48),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                    ),
+                    icon: const Icon(Icons.add),
+                    label: const Text('Dispatch Tuition Invoice', style: TextStyle(fontWeight: FontWeight.bold)),
+                    onPressed: () {
+                      final parsedAmount = double.tryParse(_feeAmountCtrl.text) ?? 5000.0;
+                      final targetStud = students.firstWhere((s) => s.id == _selectedFeeStudent);
+                      setState(() {
+                        fees.add(
+                          FeeInvoice(
+                            id: 'inv_${DateTime.now().millisecondsSinceEpoch}',
+                            studentId: targetStud.id,
+                            studentName: targetStud.name,
+                            termName: _selectedFeeTerm,
+                            amount: parsedAmount,
+                            dueDate: _feeDueDateCtrl.text,
+                            status: 'unpaid',
+                          ),
+                        );
+                      });
+                      _feeAmountCtrl.text = '12000';
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('Ledger entry generated & parents notified!')),
+                      );
+                    },
+                  ),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(height: 20),
+
+          // Outstanding Reminders Box
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: Colors.amber.shade50,
+              border: Border.all(color: Colors.amber.shade200),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Row(
+              children: [
+                const Icon(Icons.warning, color: Colors.orange),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text('Ledger Overdue Analysis', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: Color(0xFF0B2545))),
+                      Text('Overdue Total: ₹$totalOutstanding across unpaid entries. Trigger central reminders.', style: const TextStyle(fontSize: 10)),
+                    ],
+                  ),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.send_to_mobile, color: Color(0xFF0B2545)),
+                  onPressed: () {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text('Dispatched bulk reminders to parents via SMS Carrier!')),
+                    );
+                  },
+                )
+              ],
+            ),
+          ),
+          const SizedBox(height: 20),
+
+          // Active Invoice Listings
+          const Text('All Academic Invoiced Records', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Color(0xFF0B2545))),
+          const SizedBox(height: 8),
+          ListView.builder(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            itemCount: fees.length,
+            itemBuilder: (context, idx) {
+              final f = fees[idx];
+              final isPaid = f.status == 'paid';
+              return Card(
+                color: Colors.white,
+                child: ListTile(
+                  leading: CircleAvatar(
+                    backgroundColor: isPaid ? Colors.green.shade50 : Colors.red.shade50,
+                    child: Icon(isPaid ? Icons.check : Icons.close, color: isPaid ? Colors.green : Colors.red, size: 16),
+                  ),
+                  title: Text(f.studentName, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+                  subtitle: Text('${f.termName} • Due ${f.dueDate}', style: const TextStyle(fontSize: 10)),
+                  trailing: Text('₹${f.amount}', style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.black54)),
+                ),
+              );
+            },
+          )
+        ],
+      ),
+    );
+  }
+
+  Widget _buildAdminNotices() {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'Central School Board Broadcasts',
+            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Color(0xFF0B2545)),
+          ),
+          const SizedBox(height: 12),
+
+          Card(
+            color: Colors.white,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text('Post New Circular/Announcement', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Color(0xFF0B2545))),
+                  const SizedBox(height: 12),
+                  TextField(
+                    controller: _noticeTitleCtrl,
+                    decoration: const InputDecoration(labelText: 'Circular Title', border: OutlineInputBorder()),
+                  ),
+                  const SizedBox(height: 10),
+                  TextField(
+                    controller: _noticeContentCtrl,
+                    maxLines: 2,
+                    decoration: const InputDecoration(labelText: 'Circular Description / Details', border: OutlineInputBorder()),
+                  ),
+                  const SizedBox(height: 10),
+                  DropdownButtonFormField<String>(
+                    value: _noticeTarget,
+                    decoration: const InputDecoration(labelText: 'Target Group Audience', border: OutlineInputBorder()),
+                    items: const [
+                      DropdownMenuItem(value: 'All', child: Text('All (Parents & Teachers)')),
+                      DropdownMenuItem(value: 'Parents', child: Text('Parents Only')),
+                      DropdownMenuItem(value: 'Teachers', child: Text('Teachers Only')),
+                    ],
+                    onChanged: (val) {
+                      if (val != null) setState(() => _noticeTarget = val);
+                    },
+                  ),
+                  const SizedBox(height: 12),
+                  ElevatedButton.icon(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF0B2545),
+                      foregroundColor: const Color(0xFFEEB902),
+                      minimumSize: const Size.fromHeight(48),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                    ),
+                    icon: const Icon(Icons.publish_rounded),
+                    label: const Text('Publish Broadcast Notification', style: TextStyle(fontWeight: FontWeight.bold)),
+                    onPressed: () {
+                      if (_noticeTitleCtrl.text.isEmpty || _noticeContentCtrl.text.isEmpty) {
+                        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Please satisfy title and content')));
+                        return;
+                      }
+                      setState(() {
+                        notices.insert(
+                          0,
+                          Notice(
+                            id: 'not_${DateTime.now().millisecondsSinceEpoch}',
+                            title: _noticeTitleCtrl.text,
+                            content: _noticeContentCtrl.text,
+                            date: 'Today',
+                            targetGroup: _noticeTarget,
+                            authorName: 'Administration Office',
+                          ),
+                        );
+                      });
+                      _noticeTitleCtrl.clear();
+                      _noticeContentCtrl.clear();
+                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Successfully broadcasted to Notice Boards!')));
+                    },
+                  ),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(height: 20),
+
+          const Text('Currently Dispatched Broadcasts', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Color(0xFF0B2545))),
+          const SizedBox(height: 8),
+          ListView.builder(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            itemCount: notices.length,
+            itemBuilder: (context, idx) {
+              final n = notices[idx];
+              return Card(
+                color: Colors.white,
+                child: Padding(
+                  padding: const EdgeInsets.all(12),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Expanded(child: Text(n.title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Color(0xFF0B2545)))),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                            decoration: BoxDecoration(color: const Color(0xFFEEB902).withOpacity(0.15), borderRadius: BorderRadius.circular(6)),
+                            child: Text(n.targetGroup, style: const TextStyle(fontSize: 9, color: Color(0xFF0B2545), fontWeight: FontWeight.bold)),
+                          )
+                        ],
+                      ),
+                      const SizedBox(height: 6),
+                      Text(n.content, style: const TextStyle(fontSize: 11, color: Colors.black54)),
+                      const SizedBox(height: 8),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text('By: ${n.authorName}', style: const TextStyle(fontSize: 9, color: Colors.grey, fontWeight: FontWeight.bold)),
+                          Text(n.date, style: const TextStyle(fontSize: 9, color: Colors.grey)),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            },
+          )
+        ],
+      ),
+    );
+  }
+
+  // ================= TEACHER VIEW MODULES =================
+
+  Widget _buildTeacherAttendance() {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'Daily Attendance Logging (Class 10A)',
+            style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: Color(0xFF0B2545)),
+          ),
+          const Text('Tick absent students and dispatch digital register logs securely', style: TextStyle(fontSize: 10, color: Colors.grey)),
+          const SizedBox(height: 12),
+
+          Card(
+            color: Colors.white,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            child: Padding(
+              padding: const EdgeInsets.all(12),
+              child: ListView.separated(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                itemCount: students.length,
+                separatorBuilder: (_, __) => const Divider(),
+                itemBuilder: (context, idx) {
+                  final s = students[idx];
+                  return Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Row(
+                        children: [
+                          CircleAvatar(backgroundColor: const Color(0xFF0B2545)/10, maxRadius: 16, child: Text(s.rollNo, style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold))),
+                          const SizedBox(width: 10),
+                          Text(s.name, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+                        ],
+                      ),
+                      Row(
+                        children: [
+                          const Text('Present', style: TextStyle(fontSize: 10, color: Colors.green, fontWeight: FontWeight.bold)),
+                          Switch(
+                            value: true,
+                            activeColor: Colors.green,
+                            onChanged: (val) {
+                              ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Attendance adjusted!')));
+                            },
+                          ),
+                        ],
+                      )
+                    ],
+                  );
+                },
+              ),
+            ),
+          ),
+          const SizedBox(height: 16),
+          ElevatedButton.icon(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF0B2545),
+              foregroundColor: const Color(0xFFEEB902),
+              minimumSize: const Size.fromHeight(48),
+            ),
+            icon: const Icon(Icons.cloud_done_rounded),
+            label: const Text('DISPATCH ATTENDANCE REGISTER', style: TextStyle(fontWeight: FontWeight.bold)),
+            onPressed: () {
+              ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Attendance registered and parental SMS logs executed.')));
+            },
+          )
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTeacherHomework() {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text('Assignment Homework Desk', style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: Color(0xFF0B2545))),
+          const SizedBox(height: 12),
+
+          Card(
+            color: Colors.white,
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text('Assign Homework File', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+                  const SizedBox(height: 8),
+                  const TextField(
+                    decoration: InputDecoration(labelText: 'Topic Title (e.g. Quad Equations)', border: OutlineInputBorder()),
+                  ),
+                  const SizedBox(height: 10),
+                  const TextField(
+                    decoration: InputDecoration(labelText: 'Task Guidelines / Read Pages', border: OutlineInputBorder()),
+                    maxLines: 2,
+                  ),
+                  const SizedBox(height: 12),
+                  ElevatedButton.icon(
+                    style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF0B2545), foregroundColor: const Color(0xFFEEB902)),
+                    icon: const Icon(Icons.file_upload),
+                    label: const Text('Publish & Notify Portal'),
+                    onPressed: () {
+                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Homework posted successfully!')));
+                    },
+                  )
+                ],
+              ),
+            ),
+          )
+        ],
+      ),
+    );
+  }
+
+  // ================= STUDENT / PARENT VIEW MODULES =================
+
+  Widget _buildStudentOverview() {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text('Rahul Sharma (Grade 10A)', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Color(0xFF0B2545))),
+              Chip(label: Text('Roll: 24', style: TextStyle(fontSize: 9, fontWeight: FontWeight.bold)), backgroundColor: Color(0xFFEEB902)),
+            ],
+          ),
+          const SizedBox(height: 15),
+
+          // Overview boxes
+          Row(
+            children: [
+              Expanded(
+                child: Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(color: Colors.green.shade50, borderRadius: BorderRadius.circular(8)),
+                  child: const Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('ATTENDANCE RATE', style: TextStyle(fontSize: 8, fontWeight: FontWeight.bold, color: Colors.green)),
+                      Text('94.8 %', style: TextStyle(fontSize: 18, fontWeight: FontWeight.black, color: Colors.green)),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(color: Colors.blue.shade50, borderRadius: BorderRadius.circular(8)),
+                  child: const Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('LATEST RESULT', style: TextStyle(fontSize: 8, fontWeight: FontWeight.bold, color: Colors.blue)),
+                      Text('A+ Grade', style: TextStyle(fontSize: 18, fontWeight: FontWeight.black, color: Colors.blue)),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 20),
+
+          // Notices Panel
+          const Text('Important Notice Bulletins', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Color(0xFF0B2545))),
+          const SizedBox(height: 8),
+          ListView.builder(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            itemCount: notices.length,
+            itemBuilder: (context, idx) {
+              final n = notices[idx];
+              return Card(
+                color: Colors.white,
+                child: ListTile(
+                  leading: const Icon(Icons.notification_important, color: Color(0xFFEEB902)),
+                  title: Text(n.title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 11)),
+                  subtitle: Text(n.content, style: const TextStyle(fontSize: 9), maxLines: 2),
+                ),
+              );
+            },
+          )
+        ],
+      ),
+    );
+  }
+
+  Widget _buildStudentLedger() {
+    final myUnpaid = fees.where((f) => f.studentId == 'std_1' && f.status == 'unpaid').toList();
+
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text('Fee Structure & Payments', style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: Color(0xFF0B2545))),
+          const SizedBox(height: 12),
+
+          if (myUnpaid.isEmpty)
+            Container(
+              padding: const EdgeInsets.all(16),
+              alignment: Alignment.center,
+              decoration: BoxDecoration(color: Colors.green.shade50, borderRadius: BorderRadius.circular(10)),
+              child: const Text('🎉 Beautiful! All invoices have been settled successfully!', style: TextStyle(color: Colors.green, fontWeight: FontWeight.bold, fontSize: 11)),
+            )
+          else
+            ...myUnpaid.map((f) => Card(
+              color: Colors.white,
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(f.termName, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Color(0xFF0B2545))),
+                        Text('₹${f.amount}', style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.red)),
+                      ],
+                    ),
+                    const SizedBox(height: 5),
+                    Text('Due Date: ${f.dueDate} • Pending Settlement', style: const TextStyle(fontSize: 10, color: Colors.grey)),
+                    const SizedBox(height: 12),
+                    ElevatedButton.icon(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF0B2545),
+                        foregroundColor: const Color(0xFFEEB902),
+                      ),
+                      icon: const Icon(Icons.security),
+                      label: const Text('Initiate Secure UPI Payment', style: TextStyle(fontWeight: FontWeight.bold)),
+                      onPressed: () {
+                        setState(() {
+                          f.status = 'paid';
+                        });
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('Payment simulated successfully! Ledger has updated.')),
+                        );
+                      },
+                    )
+                  ],
+                ),
+              ),
+            )),
+
+          const SizedBox(height: 20),
+          const Text('Settled Historic Receipts', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Color(0xFF0B2545))),
+          const SizedBox(height: 8),
+          ...fees.where((f) => f.studentId == 'std_1' && f.status == 'paid').map((f) => Card(
+            color: Colors.white,
+            child: ListTile(
+              leading: const Icon(Icons.verified, color: Colors.green),
+              title: Text(f.termName, style: const TextStyle(fontSize: 12)),
+              subtitle: Text('Amount ₹${f.amount} • Cleared', style: const TextStyle(fontSize: 9)),
+              trailing: const Icon(Icons.download, color: Color(0xFF0B2545)),
+            ),
+          ))
+        ],
+      ),
+    );
+  }
+
+  Widget _buildAcademicCalendar() {
+    return ListView.builder(
+      padding: const EdgeInsets.all(16),
+      itemCount: events.length,
+      itemBuilder: (context, idx) {
+        final ev = events[idx];
+        Color evCol = Colors.blue;
+        if (ev.type == 'holiday') evCol = Colors.orange;
+        if (ev.type == 'exam') evCol = Colors.red;
+
+        return Card(
+          color: Colors.white,
+          child: ListTile(
+            leading: Icon(Icons.event_available, color: evCol),
+            title: Text(ev.title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+            subtitle: Text(ev.description, style: const TextStyle(fontSize: 10)),
+            trailing: CircleAvatar(
+              backgroundColor: evCol.withOpacity(0.12),
+              radius: 18,
+              child: Text(ev.date.substring(0, 2), style: TextStyle(color: evCol, fontSize: 10, fontWeight: FontWeight.bold)),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildGenericNoticesView() {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'Important Notices & Bulletins',
+            style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: Color(0xFF0B2545)),
+          ),
+          const SizedBox(height: 12),
+          ListView.builder(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            itemCount: notices.length,
+            itemBuilder: (context, idx) {
+              final n = notices[idx];
+              return Card(
+                color: Colors.white,
+                child: Padding(
+                  padding: const EdgeInsets.all(12),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(n.title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Color(0xFF0B2545))),
+                      const SizedBox(height: 6),
+                      Text(n.content, style: const TextStyle(fontSize: 11, color: Colors.black54)),
+                      const SizedBox(height: 8),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text('By: ${n.authorName}', style: const TextStyle(fontSize: 9, color: Colors.grey, fontWeight: FontWeight.bold)),
+                          Text(n.date, style: const TextStyle(fontSize: 9, color: Colors.grey)),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            },
+          ),
+        ],
+      ),
+    );
+  }
+}

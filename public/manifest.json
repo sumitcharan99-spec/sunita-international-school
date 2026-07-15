@@ -1,0 +1,42 @@
+{
+  "short_name": "Sunita SIS",
+  "name": "Sunita International School Portal",
+  "description": "Complete School Management System featuring Admin, Teacher, Student, and Parent portals with attendance tracking, fees invoice management, homework assignments, notices, academic results, and admission enquiry management.",
+  "icons": [
+    {
+      "src": "/icon.svg",
+      "type": "image/svg+xml",
+      "sizes": "any",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon.svg",
+      "type": "image/svg+xml",
+      "sizes": "192x192",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon.svg",
+      "type": "image/svg+xml",
+      "sizes": "512x512",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon.svg",
+      "type": "image/svg+xml",
+      "sizes": "192x192",
+      "purpose": "maskable"
+    },
+    {
+      "src": "/icon.svg",
+      "type": "image/svg+xml",
+      "sizes": "512x512",
+      "purpose": "maskable"
+    }
+  ],
+  "start_url": "/",
+  "background_color": "#0B2545",
+  "theme_color": "#0B2545",
+  "display": "standalone",
+  "orientation": "portrait"
+}
