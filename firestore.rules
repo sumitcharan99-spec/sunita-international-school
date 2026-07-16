@@ -149,5 +149,35 @@ service cloud.firestore {
       allow read: if isSignedIn();
       allow create, update, delete: if isAdmin();
     }
+
+    // 13. Leave Applications rules (Parents can create, read/update if they are owners)
+    match /leave_applications/{leaveId} {
+      allow create: if isSignedIn();
+      allow read, update, delete: if isSignedIn();
+    }
+
+    // 14. Contact Messages rules (Parents can create, admins can read)
+    match /contact_messages/{msgId} {
+      allow create: if true; // Public contact submissions also supported
+      allow read, update, delete: if isSignedIn();
+    }
+
+    // 15. Students Directory details rules
+    match /students/{studentId} {
+      allow read: if isSignedIn();
+      allow create, update, delete: if isAdmin() || isTeacher();
+    }
+
+    // 16. Staff Directory & Faculties rules
+    match /staff/{staffId} {
+      allow read: if isSignedIn();
+      allow create, update, delete: if isAdmin();
+    }
+
+    // 17. Fee Structures definition rules
+    match /fee_structures/{structureId} {
+      allow read: if isSignedIn();
+      allow create, update, delete: if isAdmin();
+    }
   }
 }

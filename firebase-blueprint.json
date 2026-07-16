@@ -186,6 +186,37 @@
         "endTime": { "type": "string" }
       },
       "required": ["id", "classId", "day", "subject", "teacher", "startTime", "endTime"]
+    },
+    "LeaveApplication": {
+      "title": "LeaveApplication",
+      "description": "Leave application submitted by parents for their child.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "studentId": { "type": "string" },
+        "studentName": { "type": "string" },
+        "classId": { "type": "string" },
+        "startDate": { "type": "string" },
+        "endDate": { "type": "string" },
+        "reason": { "type": "string" },
+        "status": { "type": "string", "enum": ["Pending", "Approved", "Rejected"] },
+        "dateApplied": { "type": "string" }
+      },
+      "required": ["id", "studentId", "studentName", "classId", "startDate", "endDate", "reason", "status", "dateApplied"]
+    },
+    "ContactMessage": {
+      "title": "ContactMessage",
+      "description": "Contact inquiries sent by parents to school admin.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "parentName": { "type": "string" },
+        "email": { "type": "string" },
+        "subject": { "type": "string" },
+        "message": { "type": "string" },
+        "dateSent": { "type": "string" }
+      },
+      "required": ["id", "parentName", "email", "subject", "message", "dateSent"]
     }
   },
   "firestore": {
@@ -232,6 +263,14 @@
     "/timetables/{timetableId}": {
       "schema": "Timetable",
       "description": "Weekly class schedules and periods."
+    },
+    "/leave_applications/{leaveId}": {
+      "schema": "LeaveApplication",
+      "description": "Student leave application requests."
+    },
+    "/contact_messages/{msgId}": {
+      "schema": "ContactMessage",
+      "description": "Contact and feedback message logs."
     }
   }
 }

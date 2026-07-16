@@ -1,0 +1,29 @@
+name: sunita_school_portal_app
+description: "A complete School Management System Flutter app featuring Admin, Teacher, Student, and Parent portals."
+publish_to: 'none'
+
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.0.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  cupertino_icons: ^1.0.5
+  firebase_core: ^2.27.0
+  cloud_firestore: ^4.15.8
+  firebase_auth: ^4.17.8
+  firebase_storage: ^11.6.0
+  firebase_messaging: ^14.7.19
+  provider: ^6.1.1
+  google_fonts: ^6.1.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^3.0.0
+
+flutter:
+  uses-material-design: true

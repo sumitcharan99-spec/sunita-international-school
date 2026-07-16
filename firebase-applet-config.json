@@ -6,5 +6,7 @@
   "firestoreDatabaseId": "ai-studio-805e3bdd-3b8a-45ed-8106-875e1e590f2e",
   "storageBucket": "polished-signal-2pnh2.firebasestorage.app",
   "messagingSenderId": "23916141513",
-  "measurementId": ""
+  "measurementId": "",
+  "oAuthClientId": "23916141513-2kafbscejatrqpu6nfnc399ifua6lbep.apps.googleusercontent.com",
+  "recaptchaSiteKey": ""
 }
